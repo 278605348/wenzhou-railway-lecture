@@ -1,0 +1,45 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "AI智能体在办公中的全流程自动化应用"
+  author: "周祥军"
+  date: "2026-06-25"
+  date-format: "YYYY 年 M 月 D 日"
+  search: true
+  sidebar:
+    style: docked
+    collapse-level: 1
+    title: "AI 智能体 · 全流程自动化"
+  page-footer:
+    border: false
+    left: "© 2026 周祥军 · 温州市总工会「职工成长型班组」建设系列培训"
+    right: "温州市铁路与轨道交通投资集团专场（第三场）"
+  chapters:
+    - index.qmd
+    - chapters/01-agent-vs-llm.qmd
+    - chapters/02-workbuddy.qmd
+    - chapters/03-ima-copilot.qmd
+    - chapters/04-skills.qmd
+    - chapters/05-memory-system.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      light: [cosmo, theme.scss]
+    css: styles.css
+    toc: true
+    toc-title: "本页目录"
+    toc-depth: 3
+    number-sections: true
+    number-depth: 2
+    code-copy: true
+    code-overflow: wrap
+    fontsize: 1.02rem
+    linestretch: 1.75
+    lang: zh
+    include-after-body: assets/ask-ai.html

@@ -1,0 +1,49 @@
+/*-- scss:defaults --*/
+$font-family-sans-serif: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", -apple-system, "Segoe UI", sans-serif;
+
+// 轨道交通主题配色：深海军蓝 + 轨道青 + 信号琥珀
+$rail-deep:   #0d2b54;
+$rail-blue:   #155bb5;
+$rail-sky:    #1e88e5;
+$rail-teal:   #14b8a6;
+$rail-amber:  #f5a623;
+
+$primary:     $rail-blue;
+$body-color:  #1f2733;
+$link-color:  $rail-blue;
+$border-radius: .65rem;
+
+/*-- scss:rules --*/
+:root {
+  --rail-deep: #{$rail-deep};
+  --rail-blue: #{$rail-blue};
+  --rail-sky:  #{$rail-sky};
+  --rail-teal: #{$rail-teal};
+  --rail-amber:#{$rail-amber};
+  --rail-ink:  #1f2733;
+  --rail-soft: #f5f8fc;
+  --rail-line: #e6edf6;
+}
+
+h1, h2, h3, h4 { font-weight: 700; letter-spacing: .01em; }
+
+.sidebar-title { font-weight: 800; color: var(--rail-deep); }
+
+// 侧边栏激活/悬停态
+.sidebar nav[role="doc-toc"] a:hover,
+#quarto-sidebar .sidebar-item-container a:hover { color: var(--rail-blue); }
+#quarto-sidebar .sidebar-item-container a.active {
+  color: var(--rail-blue); font-weight: 700;
+  border-left: 3px solid var(--rail-teal); padding-left: .5rem;
+}
+
+// 顶部章节标题块
+.quarto-title-block .quarto-title .title { color: var(--rail-deep); line-height: 1.25; }
+
+// 章节正文标题加一条轨道青短线
+main h2 {
+  margin-top: 2.2rem; padding-bottom: .35rem;
+  border-bottom: 2px solid var(--rail-line);
+}
+main h2 .header-section-number { color: var(--rail-teal); }
+main h3 .header-section-number { color: var(--rail-sky); }

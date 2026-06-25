@@ -1,0 +1,63 @@
+---
+title: "首页"
+pagetitle: "AI智能体在办公中的全流程自动化应用 · 温州铁路专场"
+---
+
+::: {.rail-hero}
+<span class="eyebrow">2026 温州市总工会「职工成长型班组」建设系列培训</span>
+
+<h1 class="hero-title">AI智能体在办公中的全流程自动化应用</h1>
+
+<p class="hero-sub">温州市铁路与轨道交通投资集团有限公司专场（第三场）—— 把日常办公里最耗时的活儿，交给会"动手"的 AI。</p>
+
+::: {.session-chips}
+<span class="chip"><span class="ic">🧑‍🏫</span>授课老师 <b>周祥军</b></span>
+<span class="chip"><span class="ic">🕝</span><b>6 月 25 日（周四）</b> 14:30–16:30</span>
+<span class="chip"><span class="ic">📍</span>轨道交通控制中心 5 楼多功能会议室</span>
+<span class="chip"><span class="ic">👥</span>班组长 · 中层干部 <b>120 人</b></span>
+:::
+:::
+
+各位班组长、中层干部：欢迎来到这场实操工作坊。
+
+我们正处在一个转折点上——AI 智能体（Agent）不再只是会聊天的"问答框"，而是能**主动读文件、填表格、操作软件、连续完成多步任务**的"数字同事"。本场不讲玄乎的概念，而是手把手演示：如何用 **Workbuddy、IMA Copilot、OpenClaw / Skills** 等智能体工具，把轨道交通日常办公中最耗时的活儿——**数据汇总、台账整理、公文与简报写作、合同审查、会议纪要、政策/制度解读绘图**——交给 AI，让一个班组、一个科室以更少的人力跑出更大的产出。
+
+::: {.callout-tip}
+## 怎么用这份讲义
+每个案例都给出**提示词原文**和**执行效果**，可直接复制提示词到对应工具里复现。建议边听边在自己的真实业务场景（调度、运维、安全、综合管理等）里动手试。
+:::
+
+## 课程主线 {.unnumbered}
+
+::: {.chapter-grid}
+<a class="chapter-card" href="chapters/01-agent-vs-llm.html">
+<span class="num">1</span>
+<h3>AI 智能体与大模型的区别</h3>
+<p>分清"会聊天"和"会干活"——读微信、填表、发问卷、批量下载现场演示。</p>
+</a>
+<a class="chapter-card" href="chapters/02-workbuddy.html">
+<span class="num">2</span>
+<h3>Workbuddy</h3>
+<p>日常办公自动化（表格 / 文件 / 转换 / PDF）+ 深度业务应用（培训、方案、合同）。</p>
+</a>
+<a class="chapter-card" href="chapters/03-ima-copilot.html">
+<span class="num">3</span>
+<h3>IMA Copilot（智能体）</h3>
+<p>个人 / 共享知识库、公文成稿、会议纪要、政策绘图与知识查找。</p>
+</a>
+<a class="chapter-card" href="chapters/04-skills.html">
+<span class="num">4</span>
+<h3>Skills</h3>
+<p>给智能体装上"岗位培训手册"——三层加载机制、文件结构与技能生态。</p>
+</a>
+<a class="chapter-card" href="chapters/05-memory-system.html">
+<span class="num">5</span>
+<h3>智能体记忆系统</h3>
+<p>用 Workspace（MEMORY / USER / SOUL）让 AI 越用越懂你的业务。</p>
+</a>
+:::
+
+::: {.callout-note}
+## 关于工具名称
+课程中出现的 **Workbuddy / IMA / OpenClaw / ClawHub / SkillHub** 等均为具体的智能体产品或技能市场；文中的本地文件路径为现场演示用的示例路径，请替换为你自己的文件。右下角 **💬 问问 AI** 可随时就课程内容提问。
+:::

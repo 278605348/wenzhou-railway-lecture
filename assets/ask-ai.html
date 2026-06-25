@@ -1,0 +1,201 @@
+<!-- ========================================================================
+     「问问 AI」浮窗组件（SSE 流式 · 支持 DeepSeek 等国内模型）
+     通过 _quarto.yml 的 include-after-body 注入到每个页面
+     ===================================================================== -->
+<style>
+  #askai-fab{
+    position:fixed; right:22px; bottom:22px; z-index:1050;
+    display:flex; align-items:center; gap:8px;
+    padding:11px 16px; border-radius:999px; cursor:pointer;
+    background:#2c6e9b; color:#fff; font-weight:600; font-size:15px;
+    box-shadow:0 6px 20px rgba(0,0,0,.22); user-select:none;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  #askai-fab:hover{ transform:translateY(-2px); box-shadow:0 10px 26px rgba(0,0,0,.28); }
+  #askai-panel{
+    position:fixed; right:22px; bottom:80px; z-index:1050;
+    width:min(380px,calc(100vw - 44px)); height:min(540px,70vh);
+    display:none; flex-direction:column; overflow:hidden;
+    background:#fff; border-radius:14px;
+    box-shadow:0 14px 44px rgba(0,0,0,.28); border:1px solid #e6e6e6;
+  }
+  #askai-panel.open{ display:flex; }
+  #askai-head{
+    padding:12px 14px; background:#2c6e9b; color:#fff;
+    font-weight:700; display:flex; align-items:center; justify-content:space-between;
+  }
+  #askai-close{ cursor:pointer; font-size:18px; line-height:1; opacity:.85; }
+  #askai-close:hover{ opacity:1; }
+  #askai-msgs{ flex:1; overflow-y:auto; padding:14px; background:#faf9f6; }
+  .askai-row{ margin-bottom:12px; display:flex; }
+  .askai-row.user{ justify-content:flex-end; }
+  .askai-bubble{
+    max-width:82%; padding:9px 12px; border-radius:12px; line-height:1.6;
+    font-size:14px; white-space:pre-wrap; word-break:break-word;
+  }
+  .askai-row.user .askai-bubble{ background:#2c6e9b; color:#fff; border-bottom-right-radius:4px; }
+  .askai-row.bot  .askai-bubble{ background:#fff; color:#1f2933; border:1px solid #eee; border-bottom-left-radius:4px; }
+  .askai-bubble.err{ background:#fdecec; color:#a4282b; border-color:#f3c9c9; }
+  #askai-inputrow{ display:flex; gap:8px; padding:10px; border-top:1px solid #eee; background:#fff; }
+  #askai-input{
+    flex:1; resize:none; border:1px solid #d9d9d9; border-radius:10px;
+    padding:9px 11px; font-size:14px; font-family:inherit; line-height:1.5; max-height:96px;
+  }
+  #askai-input:focus{ outline:none; border-color:#2c6e9b; }
+  #askai-send{
+    align-self:flex-end; padding:9px 14px; border:none; border-radius:10px;
+    background:#2c6e9b; color:#fff; font-weight:600; cursor:pointer;
+  }
+  #askai-send:disabled{ opacity:.5; cursor:not-allowed; }
+  .askai-cursor{ display:inline-block; width:7px; animation:askaiBlink 1s steps(2) infinite; }
+  @keyframes askaiBlink{ 0%,50%{opacity:1} 50.01%,100%{opacity:0} }
+</style>
+
+<div id="askai-fab" title="问问 AI">💬 问问 AI</div>
+<div id="askai-panel" aria-live="polite">
+  <div id="askai-head">
+    <span>问问 AI</span>
+    <span id="askai-close" title="关闭">✕</span>
+  </div>
+  <div id="askai-msgs"></div>
+  <div id="askai-inputrow">
+    <textarea id="askai-input" rows="1" placeholder="输入你的问题，回车发送（Shift+回车换行）"></textarea>
+    <button id="askai-send">发送</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ====================================================================
+  // 「问问 AI」后端配置 —— 两种接法，二选一
+  //
+  //  A) 直连国内模型（OpenAI 兼容，如 DeepSeek）
+  //     mode:"openai"，endpoint 用厂商地址，apiKey 填你的密钥。
+  //     ⚠️ 前端会暴露 apiKey，仅适合本地 / 内网演示。
+  //
+  //  B) 自建后端代理（公网发布推荐）
+  //     mode:"openai"，endpoint 指向你服务器上的 OpenAI 兼容代理，apiKey 留空，
+  //     由服务器保管 DeepSeek 密钥；或 mode:"raw"，由后端自定义只收 {message}。
+  //
+  //  DeepSeek 直连参考：
+  //     endpoint = https://api.deepseek.com/chat/completions
+  //     model    = deepseek-chat   （或 deepseek-reasoner）
+  // ====================================================================
+  const AI_CONFIG = {
+    mode:     "openai",
+    endpoint: "https://ai-ask.zhoudafu-ai.workers.dev/api/chat",  // Cloudflare Worker 代理，密钥存 CF 后台
+    apiKey:   "",                                    // 留空：密钥由 Worker 注入，不出现在前端
+    model:    "deepseek-chat",
+    system:   "你是《智能体重塑职业生产力：打造AI超级办公个体》这本讲义的 AI 助教，" +
+              "请用简洁、准确的中文回答与课程相关的问题。"
+  };
+  // ====================================================================
+
+  const fab   = document.getElementById('askai-fab');
+  const panel = document.getElementById('askai-panel');
+  const msgs  = document.getElementById('askai-msgs');
+  const input = document.getElementById('askai-input');
+  const send  = document.getElementById('askai-send');
+  let busy = false;
+  const history = [];   // OpenAI 兼容模式下的多轮对话上下文
+
+  fab.addEventListener('click', ()=>{
+    panel.classList.toggle('open');
+    if(panel.classList.contains('open')) input.focus();
+  });
+  document.getElementById('askai-close').addEventListener('click', ()=> panel.classList.remove('open'));
+
+  input.addEventListener('input', ()=>{ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,96)+'px'; });
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(); } });
+  send.addEventListener('click', submit);
+
+  function addRow(role, text){
+    const row=document.createElement('div'); row.className='askai-row '+role;
+    const b=document.createElement('div'); b.className='askai-bubble'; b.textContent=text||'';
+    row.appendChild(b); msgs.appendChild(row); msgs.scrollTop=msgs.scrollHeight;
+    return b;
+  }
+
+  function notConfigured(){
+    return AI_CONFIG.endpoint.startsWith("REPLACE_") ||
+           (AI_CONFIG.mode==="openai" && AI_CONFIG.apiKey.startsWith("REPLACE_"));
+  }
+
+  // 构造请求（兼容 OpenAI/DeepSeek chat-completions 与自定义后端）
+  function buildRequest(q){
+    const headers={'Content-Type':'application/json','Accept':'text/event-stream'};
+    let body;
+    if(AI_CONFIG.mode==="openai"){
+      if(AI_CONFIG.apiKey) headers['Authorization']='Bearer '+AI_CONFIG.apiKey;
+      const messages=[{role:'system',content:AI_CONFIG.system}, ...history, {role:'user',content:q}];
+      body=JSON.stringify({model:AI_CONFIG.model, messages, stream:true});
+    }else{ // raw：自建后端自行决定模型与上下文
+      body=JSON.stringify({message:q});
+    }
+    return {headers, body};
+  }
+
+  // 从一条 SSE data 中尽量提取文本增量，兼容多种后端格式
+  function extractToken(data){
+    try{
+      const j=JSON.parse(data);
+      return (j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content)
+          ?? j.content ?? j.text ?? j.delta ?? j.token ?? "";
+    }catch(e){ return data; }   // 不是 JSON 就当纯文本
+  }
+
+  async function submit(){
+    if(busy) return;
+    const q=input.value.trim(); if(!q) return;
+    if(notConfigured()){
+      const b=addRow('bot',''); b.classList.add('err');
+      b.textContent='💡 AI 问答功能正在接入中，敬请期待～（管理员：请在 server/ 部署 DeepSeek 代理后，将 AI_CONFIG.endpoint 指向它）';
+      return;
+    }
+    addRow('user', q);
+    input.value=''; input.style.height='auto';
+    busy=true; send.disabled=true;
+
+    const bubble=addRow('bot','');
+    const cursor=document.createElement('span'); cursor.className='askai-cursor'; cursor.textContent='▍';
+    bubble.appendChild(cursor);
+    let acc='';
+
+    try{
+      const {headers, body}=buildRequest(q);
+      const res=await fetch(AI_CONFIG.endpoint,{method:'POST', headers, body});
+      if(!res.ok || !res.body) throw new Error('HTTP '+res.status);
+      const reader=res.body.getReader();
+      const dec=new TextDecoder('utf-8');
+      let buf='';
+      while(true){
+        const {value,done}=await reader.read();
+        if(done) break;
+        buf+=dec.decode(value,{stream:true});
+        let nl;
+        while((nl=buf.indexOf('\n'))>=0){
+          const line=buf.slice(0,nl).replace(/\r$/,''); buf=buf.slice(nl+1);
+          if(!line.startsWith('data:')) continue;
+          const data=line.slice(5).trim();
+          if(data==='[DONE]'){ buf=''; break; }
+          acc+=extractToken(data);
+          bubble.textContent=acc; bubble.appendChild(cursor);
+          msgs.scrollTop=msgs.scrollHeight;
+        }
+      }
+      cursor.remove();
+      if(!acc){ bubble.textContent='（无返回内容）'; }
+      else if(AI_CONFIG.mode==="openai"){            // 记录多轮上下文
+        history.push({role:'user',content:q}, {role:'assistant',content:acc});
+        if(history.length>12) history.splice(0, history.length-12);
+      }
+    }catch(err){
+      cursor.remove();
+      bubble.classList.add('err');
+      bubble.textContent='⚠️ 请求失败：'+err.message+'。请检查后端地址、密钥与跨域(CORS)设置。';
+    }finally{
+      busy=false; send.disabled=false; input.focus();
+    }
+  }
+})();
+</script>

@@ -1,0 +1,10 @@
+/_book/
+/.quarto/
+/.wrangler/
+*.html
+!assets/ask-ai.html
+*_files/
+.DS_Store
+Thumbs.db
+
+**/*.quarto_ipynb
