@@ -43,14 +43,15 @@ It points at a **shared** Cloudflare Worker `https://ai-ask.zhoudafu-ai.workers.
 
 ## Deployment (Cloudflare Pages)
 
-Hosted on **Cloudflare Pages**, project `wenzhou-railway-lecture`, live at <https://wenzhou-railway-lecture.pages.dev/>. **Public, no auth** (unlike the sibling project, which is Basic-Auth gated). This directory is **not a git repo** — it is deployed directly from the rendered `_book/`:
+Hosted on **Cloudflare Pages**, project `wenzhou-railway-lecture`, live at <https://wenzhou-railway-lecture.pages.dev/>. Source is on GitHub at **`278605348/wenzhou-railway-lecture` (public)**; `main` holds source only (`_book/` gitignored).
+
+**The site is behind HTTP Basic Auth.** `pages/_worker.js` is the Pages advanced-mode entry that gates every request, but credentials are read from **Cloudflare Pages env vars `SITE_USER` / `SITE_PASS`** (currently `dafu` / `xiaofu`) — so the public repo contains NO password. To change credentials, edit those env vars on the Pages project (CF dashboard or API), no code change needed. `_worker.js` must sit at the deploy-dir root at upload time, so re-copy it after each render (render wipes `_book/`):
 
 ```powershell
 $env:CLOUDFLARE_API_TOKEN="<token>"; $env:CLOUDFLARE_ACCOUNT_ID="52a1d78988e814ecf8c63e1fe9b792be"
 & $q render
+Copy-Item pages/_worker.js _book/_worker.js   # re-add the Basic Auth gate
 npx --yes wrangler pages deploy _book --project-name=wenzhou-railway-lecture --branch=main --commit-dirty=true
 ```
-
-To add a login gate later, copy the sibling's `pages/_worker.js` (Basic Auth, advanced mode) into `_book/_worker.js` before the `wrangler pages deploy` step (render wipes `_book`, so re-copy each time).
 
 Cloudflare-API gotcha: bundled Windows `curl` can't read MSYS `/c/...` paths nor reliably do `-F` multipart — for any CF multipart upload (e.g. Worker scripts) use **Node** (`fetch` + `FormData`/`Blob`).
